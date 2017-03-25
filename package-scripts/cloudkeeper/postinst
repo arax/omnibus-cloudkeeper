@@ -1,0 +1,73 @@
+#!/bin/bash
+#
+# Perform necessary cloudkeeper setup steps
+# after package is installed.
+#
+
+PROGNAME=$(basename $0)
+INSTALLER_DIR=`dirname $0`
+DEST_DIR=/opt/cloudkeeper
+CONFIG_DIR=/etc/cloudkeeper
+BIN_DIR=/usr/bin
+CRON_DIR=/etc/cron.d
+INIT_DIR=/etc/init.d
+
+RUN_DIR=/var/run/cloudkeeper
+LOG_DIR=/var/log/cloudkeeper
+CLOUDKEEPER_CONFIG_FILE=$CONFIG_DIR/cloudkeeper.yml
+
+RUBY_VERSION=2.2.0
+CLOUDKEEPER_VERSION=1.0.0
+
+EMBEDDED_GEM_ROOT=$DEST_DIR/embedded/lib/ruby/gems/$RUBY_VERSION/gems/cloudkeeper-$CLOUDKEEPER_VERSION
+
+function error_exit
+{
+  echo "${PROGNAME}: ${1:-"Unknown Error"}" 1>&2
+  exit 1
+}
+
+# chown
+chown -R root:root $DEST_DIR || error_exit "Cannot chown $DEST_DIR to root:root"
+
+# create the cloudkeeper user
+id -u cloudkeeper > /dev/null 2>&1
+if [ "$?" -ne "0" ]; then
+  useradd --system --shell /bin/false --home /var/lib/cloudkeeper --create-home cloudkeeper || error_exit "Cannot create the cloudkeeper user account"
+  usermod -L cloudkeeper || error_exit "Cannot lock the cloudkeeper user account"
+fi
+
+# prepare runtime dirs
+mkdir -p $RUN_DIR || error_exit "Cannot create $RUN_DIR"
+chown cloudkeeper:cloudkeeper $RUN_DIR || error_exit "Cannot chown $RUN_DIR to cloudkeeper:cloudkeeper"
+
+mkdir -p $LOG_DIR || error_exit "Cannot create $LOG_DIR"
+chown cloudkeeper:cloudkeeper $LOG_DIR || error_exit "Cannot chown $LOG_DIR to cloudkeeper:cloudkeeper"
+
+# prepare configuration dir
+mkdir -p $CONFIG_DIR || error_exit "Cannot create $CONFIG_DIR"
+chown root:root $CONFIG_DIR || error_exit "Cannot chown $CONFIG_DIR to root:root"
+
+CLOUDKEEPER_CONFIG_FILE_DEST=$CLOUDKEEPER_CONFIG_FILE
+if [ -f "$CLOUDKEEPER_CONFIG_FILE" ]; then
+  CLOUDKEEPER_CONFIG_FILE_DEST=$CLOUDKEEPER_CONFIG_FILE.new
+fi
+
+cp $EMBEDDED_GEM_ROOT/config/cloudkeeper.yml $CLOUDKEEPER_CONFIG_FILE_DEST || error_exit "Cannot create $CLOUDKEEPER_CONFIG_FILE_DEST"
+
+# symlink bin files into $BIN_DIR
+ln -sf $DEST_DIR/bin/cloudkeeper $BIN_DIR || error_exit "Cannot link cloudkeeper to $BIN_DIR"
+
+# set up cron integration
+if [ -d "$CRON_DIR" ]; then
+  cp $EMBEDDED_GEM_ROOT/examples/etc/cron.d/cloudkeeper $CRON_DIR || error_exit "Cannot register cloudkeeper in $CRON_DIR"
+fi
+
+# set up init scripts
+if [ -d "$INIT_DIR" ]; then
+  cp $EMBEDDED_GEM_ROOT/examples/etc/init.d/cloudkeeper-cron $INIT_DIR || error_exit "Cannot register cloudkeeper-cron in $INIT_DIR"
+fi
+
+echo "Thank you for installing cloudkeeper!"
+
+exit 0
