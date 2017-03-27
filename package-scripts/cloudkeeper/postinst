@@ -14,7 +14,11 @@ INIT_DIR=/etc/init.d
 
 RUN_DIR=/var/run/cloudkeeper
 LOG_DIR=/var/log/cloudkeeper
+SPOOL_DIR=/var/spool/cloudkeeper
+LOCK_DIR=/var/lock/cloudkeeper
+
 CLOUDKEEPER_CONFIG_FILE=$CONFIG_DIR/cloudkeeper.yml
+CLOUDKEEPER_IMAGES_DIR=$SPOOL_DIR/images/
 
 RUBY_VERSION=2.2.0
 CLOUDKEEPER_VERSION=1.0.0
@@ -33,7 +37,7 @@ chown -R root:root $DEST_DIR || error_exit "Cannot chown $DEST_DIR to root:root"
 # create the cloudkeeper user
 id -u cloudkeeper > /dev/null 2>&1
 if [ "$?" -ne "0" ]; then
-  useradd --system --shell /bin/false --home /var/lib/cloudkeeper --create-home cloudkeeper || error_exit "Cannot create the cloudkeeper user account"
+  useradd --system --shell /bin/false --home $SPOOL_DIR --create-home cloudkeeper || error_exit "Cannot create the cloudkeeper user account"
   usermod -L cloudkeeper || error_exit "Cannot lock the cloudkeeper user account"
 fi
 
@@ -43,6 +47,12 @@ chown cloudkeeper:cloudkeeper $RUN_DIR || error_exit "Cannot chown $RUN_DIR to c
 
 mkdir -p $LOG_DIR || error_exit "Cannot create $LOG_DIR"
 chown cloudkeeper:cloudkeeper $LOG_DIR || error_exit "Cannot chown $LOG_DIR to cloudkeeper:cloudkeeper"
+
+mkdir -p $CLOUDKEEPER_IMAGES_DIR || error_exit "Cannot create $CLOUDKEEPER_IMAGES_DIR"
+chown -R cloudkeeper:cloudkeeper $SPOOL_DIR || error_exit "Cannot chown $SPOOL_DIR to cloudkeeper:cloudkeeper"
+
+mkdir -p $LOCK_DIR || error_exit "Cannot create $LOCK_DIR"
+chown cloudkeeper:cloudkeeper $LOCK_DIR || error_exit "Cannot chown $LOCK_DIR to cloudkeeper:cloudkeeper"
 
 # prepare configuration dir
 mkdir -p $CONFIG_DIR || error_exit "Cannot create $CONFIG_DIR"
