@@ -16,9 +16,11 @@
 
 name "cacerts"
 
-default_version "2016-04-20"
+default_version "2017-01-18"
 
 source url: "https://curl.haxx.se/ca/cacert-#{version}.pem"
+
+version("2017-01-18") { source sha256: "e62a07e61e5870effa81b430e1900778943c228bd7da1259dd6a955ee2262b47" }
 
 version "2016-04-20" do
   source md5: "782dcde8f5d53b1b9e888fdf113c42b9"

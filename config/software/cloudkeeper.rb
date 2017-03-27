@@ -5,6 +5,7 @@ default_version "1.0.0"
 dependency "ruby"
 dependency "rubygems"
 dependency "liblzma"
+dependency "nginx"
 
 env = {
   "LDFLAGS" => "-L#{install_dir}/embedded/lib -I#{install_dir}/embedded/include",
