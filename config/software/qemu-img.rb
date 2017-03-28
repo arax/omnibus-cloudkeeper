@@ -26,5 +26,5 @@ build do
 
   command configure.join(" "), :env => env
   command "make -j #{workers} qemu-img", :env => env
-  command "cp qemu-img #{install_dir}/embedded/sbin/"
+  copy "qemu-img", "#{install_dir}/embedded/sbin/"
 end
