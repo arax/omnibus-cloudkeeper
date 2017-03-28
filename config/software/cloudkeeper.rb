@@ -1,6 +1,6 @@
 name "cloudkeeper"
 ## WARN: do not forget to change CLOUDKEEPER_VERSION in the postinst script
-default_version "1.0.0"
+default_version "1.1.1"
 
 dependency "ruby"
 dependency "rubygems"
