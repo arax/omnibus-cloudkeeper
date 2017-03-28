@@ -24,6 +24,7 @@ RUBY_VERSION=2.2.0
 CLOUDKEEPER_VERSION=1.0.0
 
 EMBEDDED_GEM_ROOT=$DEST_DIR/embedded/lib/ruby/gems/$RUBY_VERSION/gems/cloudkeeper-$CLOUDKEEPER_VERSION
+EMBEDDED_NGINX_BIN=$DEST_DIR/embedded/sbin/nginx
 
 function error_exit
 {
@@ -77,6 +78,10 @@ fi
 if [ -d "$INIT_DIR" ]; then
   cp $EMBEDDED_GEM_ROOT/examples/etc/init.d/cloudkeeper-cron $INIT_DIR || error_exit "Cannot register cloudkeeper-cron in $INIT_DIR"
 fi
+
+# change configuration defaults
+EMBEDDED_NGINX_BIN_ESCAPED=$(echo "$EMBEDDED_NGINX_BIN" | sed -e 's/[\/&]/\\&/g')
+sed -i "s/\/usr\/bin\/nginx/$EMBEDDED_NGINX_BIN_ESCAPED/g" $CLOUDKEEPER_CONFIG_FILE_DEST || error_exit "Could not adapt $CLOUDKEEPER_CONFIG_FILE_DEST to local configuration"
 
 echo "Thank you for installing cloudkeeper!"
 
