@@ -25,7 +25,6 @@ CLOUDKEEPER_VERSION=1.1.1
 
 EMBEDDED_GEM_ROOT=$DEST_DIR/embedded/lib/ruby/gems/$RUBY_VERSION/gems/cloudkeeper-$CLOUDKEEPER_VERSION
 EMBEDDED_NGINX_BIN=$DEST_DIR/embedded/sbin/nginx
-EMBEDDED_QEMU_IMG_BIN=$DEST_DIR/embedded/sbin/qemu-img
 
 function error_exit
 {
@@ -83,9 +82,6 @@ fi
 # change configuration defaults
 EMBEDDED_NGINX_BIN_ESCAPED=$(echo "$EMBEDDED_NGINX_BIN" | sed -e 's/[\/&]/\\&/g')
 sed -i "s/\/usr\/bin\/nginx/$EMBEDDED_NGINX_BIN_ESCAPED/g" $CLOUDKEEPER_CONFIG_FILE_DEST || error_exit "Could not adapt $CLOUDKEEPER_CONFIG_FILE_DEST to local configuration"
-
-EMBEDDED_QEMU_IMG_BIN_ESCAPED=$(echo "$EMBEDDED_QEMU_IMG_BIN" | sed -e 's/[\/&]/\\&/g')
-sed -i "s/\/usr\/bin\/qemu\-img/$EMBEDDED_QEMU_IMG_BIN_ESCAPED/g" $CLOUDKEEPER_CONFIG_FILE_DEST || error_exit "Could not adapt $CLOUDKEEPER_CONFIG_FILE_DEST to local configuration"
 
 echo "Thank you for installing cloudkeeper!"
 

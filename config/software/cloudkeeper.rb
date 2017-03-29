@@ -6,7 +6,6 @@ dependency "ruby"
 dependency "rubygems"
 dependency "liblzma"
 dependency "nginx"
-dependency "qemu-img"
 
 env = {
   "LDFLAGS" => "-L#{install_dir}/embedded/lib -I#{install_dir}/embedded/include",

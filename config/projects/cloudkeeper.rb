@@ -23,6 +23,13 @@ dependency 'cloudkeeper'
 # version manifest file
 dependency 'version-manifest'
 
+case Facter.value('operatingsystem')
+when 'Debian', 'Ubuntu'
+  runtime_dependency 'qemu-utils (>= 2.0)'
+when 'CentOS'
+  runtime_dependency 'qemu-img >= 2.0'
+end
+
 # tweaking package-specific options
 package :deb do
   vendor 'CESNET, Grid Department <cloud@metacentrum.cz>'
