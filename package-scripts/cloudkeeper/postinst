@@ -82,6 +82,7 @@ fi
 # change configuration defaults
 EMBEDDED_NGINX_BIN_ESCAPED=$(echo "$EMBEDDED_NGINX_BIN" | sed -e 's/[\/&]/\\&/g')
 sed -i "s/\/usr\/bin\/nginx/$EMBEDDED_NGINX_BIN_ESCAPED/g" $CLOUDKEEPER_CONFIG_FILE_DEST || error_exit "Could not adapt $CLOUDKEEPER_CONFIG_FILE_DEST to local configuration"
+sed -i "s/remote-mode: false/remote-mode: true/g" $CLOUDKEEPER_CONFIG_FILE_DEST || error_exit "Could not adapt $CLOUDKEEPER_CONFIG_FILE_DEST to local configuration"
 
 echo "Thank you for installing cloudkeeper!"
 
