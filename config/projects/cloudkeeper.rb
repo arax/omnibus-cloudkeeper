@@ -6,8 +6,8 @@ homepage 'https://github.com/the-cloudkeeper-project/cloudkeeper'
 description 'Synchronize cloud appliances between AppDB and cloud platforms.'
 
 install_dir     '/opt/cloudkeeper'
-build_version   "1.1.4"
-build_iteration 3
+build_version   "1.1.5"
+build_iteration 1
 
 override :rubygems, :version => '2.6.8'
 ## WARN: do not forget to change RUBY_VERSION in the postinst script
