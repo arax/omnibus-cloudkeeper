@@ -18,6 +18,7 @@ SPOOL_DIR=/var/spool/cloudkeeper
 LOCK_DIR=/var/lock/cloudkeeper
 
 CLOUDKEEPER_CONFIG_FILE=$CONFIG_DIR/cloudkeeper.yml
+CLOUDKEEPER_CONFIG_FILE_MOD=440
 CLOUDKEEPER_IMAGES_DIR=$SPOOL_DIR/images/
 
 RUBY_VERSION=2.2.0
@@ -65,6 +66,8 @@ if [ -f "$CLOUDKEEPER_CONFIG_FILE" ]; then
 fi
 
 cp $EMBEDDED_GEM_ROOT/config/cloudkeeper.yml $CLOUDKEEPER_CONFIG_FILE_DEST || error_exit "Cannot create $CLOUDKEEPER_CONFIG_FILE_DEST"
+chown cloudkeeper:cloudkeeper $CLOUDKEEPER_CONFIG_FILE_DEST || error_exit "Cannot chown $CLOUDKEEPER_CONFIG_FILE_DEST to cloudkeeper:cloudkeeper"
+chmod $CLOUDKEEPER_CONFIG_FILE_MOD $CLOUDKEEPER_CONFIG_FILE_DEST || error_exit "Cannot chmod $CLOUDKEEPER_CONFIG_FILE_DEST to $CLOUDKEEPER_CONFIG_FILE_MOD"
 
 # symlink bin files into $BIN_DIR
 ln -sf $DEST_DIR/bin/cloudkeeper $BIN_DIR || error_exit "Cannot link cloudkeeper to $BIN_DIR"
