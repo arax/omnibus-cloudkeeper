@@ -22,7 +22,8 @@ CLOUDKEEPER_CONFIG_FILE_MOD=440
 CLOUDKEEPER_IMAGES_DIR=$SPOOL_DIR/images/
 
 RUBY_VERSION=2.2.0
-CLOUDKEEPER_VERSION=1.3.1
+CLOUDKEEPER_VERSION=1.4.1
+CLOUDKEEPER_NEW_CONFIG_VERSION=1.4
 
 EMBEDDED_GEM_ROOT=$DEST_DIR/embedded/lib/ruby/gems/$RUBY_VERSION/gems/cloudkeeper-$CLOUDKEEPER_VERSION
 EMBEDDED_NGINX_BIN=$DEST_DIR/embedded/sbin/nginx
@@ -68,6 +69,22 @@ fi
 cp $EMBEDDED_GEM_ROOT/config/cloudkeeper.yml $CLOUDKEEPER_CONFIG_FILE_DEST || error_exit "Cannot create $CLOUDKEEPER_CONFIG_FILE_DEST"
 chown cloudkeeper:cloudkeeper $CLOUDKEEPER_CONFIG_FILE_DEST || error_exit "Cannot chown $CLOUDKEEPER_CONFIG_FILE_DEST to cloudkeeper:cloudkeeper"
 chmod $CLOUDKEEPER_CONFIG_FILE_MOD $CLOUDKEEPER_CONFIG_FILE_DEST || error_exit "Cannot chmod $CLOUDKEEPER_CONFIG_FILE_DEST to $CLOUDKEEPER_CONFIG_FILE_MOD"
+
+# copy new version of configuration file if moving through incompatible versions
+which rpm > /dev/null 2>&1
+if [ "$?" -eq "0" ]; then
+  RPM_VERSION=`rpm -q cloudkeeper | sort | head -n 1 | grep --color=never -oe"[0-9]\+\.[0-9]\+\.[0-9]\+"`
+fi
+
+if [ "x" != "x$2" -a "x$2" \< "x$CLOUDKEEPER_NEW_CONFIG_VERSION" ] || [ "$1" != "configure" -a "x$1" \> "x1" -a "x$RPM_VERSION" \< "x$CLOUDKEEPER_NEW_CONFIG_VERSION" ]; then
+  mv $CLOUDKEEPER_CONFIG_FILE $CLOUDKEEPER_CONFIG_FILE.old || error_exit "Cannot move $CLOUDKEEPER_CONFIG_FILE"
+  cp $EMBEDDED_GEM_ROOT/config/cloudkeeper.yml $CLOUDKEEPER_CONFIG_FILE || error_exit "Cannot create $CLOUDKEEPER_CONFIG_FILE"
+
+  chown cloudkeeper:cloudkeeper $CLOUDKEEPER_CONFIG_FILE || error_exit "Cannot chown $CLOUDKEEPER_CONFIG_FILE to cloudkeeper:cloudkeeper"
+  chmod $CLOUDKEEPER_CONFIG_FILE_MOD $CLOUDKEEPER_CONFIG_FILE || error_exit "Cannot chmod $CLOUDKEEPER_CONFIG_FILE to $CLOUDKEEPER_CONFIG_FILE_MOD"
+
+  echo "New configuration file was released. Please modify it according to your needs."
+fi
 
 # symlink bin files into $BIN_DIR
 ln -sf $DEST_DIR/bin/cloudkeeper $BIN_DIR || error_exit "Cannot link cloudkeeper to $BIN_DIR"
