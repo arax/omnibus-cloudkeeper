@@ -83,6 +83,7 @@ if [ "x" != "x$2" -a "x$2" \< "x$CLOUDKEEPER_NEW_CONFIG_VERSION" ] || [ "$1" != 
   chown cloudkeeper:cloudkeeper $CLOUDKEEPER_CONFIG_FILE || error_exit "Cannot chown $CLOUDKEEPER_CONFIG_FILE to cloudkeeper:cloudkeeper"
   chmod $CLOUDKEEPER_CONFIG_FILE_MOD $CLOUDKEEPER_CONFIG_FILE || error_exit "Cannot chmod $CLOUDKEEPER_CONFIG_FILE to $CLOUDKEEPER_CONFIG_FILE_MOD"
 
+  CONFIG_FILE_MOVED="yes"
   echo "New configuration file was released. Please modify it according to your needs."
 fi
 
@@ -103,6 +104,11 @@ fi
 EMBEDDED_NGINX_BIN_ESCAPED=$(echo "$EMBEDDED_NGINX_BIN" | sed -e 's/[\/&]/\\&/g')
 sed -i "s/\/usr\/bin\/nginx/$EMBEDDED_NGINX_BIN_ESCAPED/g" $CLOUDKEEPER_CONFIG_FILE_DEST || error_exit "Could not adapt $CLOUDKEEPER_CONFIG_FILE_DEST to local configuration"
 sed -i "s/remote-mode: false/remote-mode: true/g" $CLOUDKEEPER_CONFIG_FILE_DEST || error_exit "Could not adapt $CLOUDKEEPER_CONFIG_FILE_DEST to local configuration"
+
+if [ "x$CONFIG_FILE_MOVED" = "xyes" ]; then
+  sed -i "s/\/usr\/bin\/nginx/$EMBEDDED_NGINX_BIN_ESCAPED/g" $CLOUDKEEPER_CONFIG_FILE || error_exit "Could not adapt $CLOUDKEEPER_CONFIG_FILE to local configuration"
+  sed -i "s/remote-mode: false/remote-mode: true/g" $CLOUDKEEPER_CONFIG_FILE || error_exit "Could not adapt $CLOUDKEEPER_CONFIG_FILE to local configuration"
+fi
 
 echo "Thank you for installing cloudkeeper!"
 
