@@ -15,13 +15,14 @@
 #
 
 name "nginx"
-default_version "1.10.2"
+default_version "1.13.7"
 
 dependency "pcre"
 dependency "openssl"
 
 source url: "http://nginx.org/download/nginx-#{version}.tar.gz"
 
+version("1.13.7") { source md5: "5fcd056b40cb5c47b053fb14a2a89e7d" }
 version("1.10.2") { source md5: "e8f5f4beed041e63eb97f9f4f55f3085" }
 
 relative_path "nginx-#{version}"

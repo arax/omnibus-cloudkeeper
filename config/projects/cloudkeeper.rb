@@ -1,18 +1,16 @@
-require 'facter'
-
 name 'cloudkeeper'
 maintainer 'Boris Parak <parak@cesnet.cz>'
 homepage 'https://github.com/the-cloudkeeper-project/cloudkeeper'
 description 'Synchronize cloud appliances between AppDB and cloud platforms.'
 
 install_dir     '/opt/cloudkeeper'
-build_version   "1.5.1"
+build_version   "1.6.0"
 build_iteration 1
 
 override :rubygems, :version => '2.6.8'
 ## WARN: do not forget to change RUBY_VERSION in the postinst script
 ##       when switching to a new minor version
-override :ruby, :version => '2.2.6'
+override :ruby, :version => '2.2.8'
 
 # creates required build directories
 dependency 'preparation'
@@ -23,11 +21,10 @@ dependency 'cloudkeeper'
 # version manifest file
 dependency 'version-manifest'
 
-case Facter.value('operatingsystem')
-when 'Debian', 'Ubuntu'
-  runtime_dependency 'qemu-utils (>= 2.0)'
-when 'CentOS'
+if File.exists? '/etc/redhat-release'
   runtime_dependency 'qemu-img >= 2.0'
+else
+  runtime_dependency 'qemu-utils (>= 2.0)'
 end
 
 # tweaking package-specific options

@@ -18,24 +18,21 @@ function error_exit
   exit 1
 }
 
-if [ "X$1" = "Xupgrade" ] || [ "X$1" = "X1" ]; then
-  echo "Skipping clean-up, this is an upgrade!"
-  exit 0
-fi
+if [ "X$1" = "Xpurge" ] || [ "X$1" = "X0" ]; then
+  # clean up cron integration
+  if [ -f "$CRON_DIR/cloudkeeper" ]; then
+    rm $CRON_DIR/cloudkeeper
+  fi
 
-# clean up cron integration
-if [ -f "$CRON_DIR/cloudkeeper" ]; then
-  rm $CRON_DIR/cloudkeeper
-fi
+  # clean up init scripts
+  if [ -f "$INIT_DIR/cloudkeeper-cron" ]; then
+    rm $INIT_DIR/cloudkeeper-cron
+  fi
 
-# clean up init scripts
-if [ -f "$INIT_DIR/cloudkeeper-cron" ]; then
-  rm $INIT_DIR/cloudkeeper-cron
-fi
-
-# clean up links
-if [ -L "$BIN_DIR/cloudkeeper" ]; then
-  rm $BIN_DIR/cloudkeeper
+  # clean up links
+  if [ -L "$BIN_DIR/cloudkeeper" ]; then
+    rm $BIN_DIR/cloudkeeper
+  fi
 fi
 
 echo "cloudkeeper has been uninstalled!"
