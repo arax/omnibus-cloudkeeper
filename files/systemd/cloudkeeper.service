@@ -1,0 +1,21 @@
+[Unit]
+Description="Cloudkeeper Oneshot Service"
+After=network.target
+
+[Service]
+Type=oneshot
+
+User=cloudkeeper
+Group=cloudkeeper
+
+WorkingDirectory=/var/run/cloudkeeper
+RuntimeDirectory=/var/run/cloudkeeper
+StateDirectory=/var/lock/cloudkeeper
+CacheDirectory=/var/spool/cloudkeeper
+LogsDirectory=/var/log/cloudkeeper
+ConfigurationDirectory=/etc/cloudkeeper
+
+ExecStart=/usr/bin/cloudkeeper
+
+[Install]
+WantedBy=multi-user.target

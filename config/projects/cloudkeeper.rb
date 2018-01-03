@@ -5,12 +5,12 @@ description 'Synchronize cloud appliances between AppDB and cloud platforms.'
 
 install_dir     '/opt/cloudkeeper'
 build_version   "1.6.0"
-build_iteration 1
+build_iteration 2
 
 override :rubygems, :version => '2.6.8'
 ## WARN: do not forget to change RUBY_VERSION in the postinst script
 ##       when switching to a new minor version
-override :ruby, :version => '2.2.8'
+override :ruby, :version => '2.4.2'
 
 # creates required build directories
 dependency 'preparation'

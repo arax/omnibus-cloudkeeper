@@ -6,11 +6,14 @@
 
 PROGNAME=$(basename $0)
 INSTALLER_DIR=`dirname $0`
-DEST_DIR=/opt/cloudkeeper
-CONFIG_DIR=/etc/cloudkeeper
-BIN_DIR=/usr/bin
-CRON_DIR=/etc/cron.d
-INIT_DIR=/etc/init.d
+
+SYSD_DIR="/etc/systemd/system"
+BIN_DIR="/usr/bin"
+
+DEST_DIR="/opt/cloudkeeper"
+CONFIG_DIR="/etc/cloudkeeper"
+LOG_DIR="/var/log/cloudkeeper"
+SPOOL_DIR="/var/spool/cloudkeeper"
 
 function error_exit
 {
@@ -18,21 +21,29 @@ function error_exit
   exit 1
 }
 
+function remdir
+{
+  if [ -d "$1" ]; then
+    rm -rf "$1" || error_exit "Could not unlink $1"
+  fi
+}
+
 if [ "X$1" = "Xpurge" ] || [ "X$1" = "X0" ]; then
-  # clean up cron integration
-  if [ -f "$CRON_DIR/cloudkeeper" ]; then
-    rm $CRON_DIR/cloudkeeper
-  fi
+  # clean up systemd integration
+  for SD_FILE in ${SYSD_DIR}/cloudkeeper.* ; do
+    rm "$SD_FILE" || error_exit "Could not unlink $SD_FILE"
+  done
 
-  # clean up init scripts
-  if [ -f "$INIT_DIR/cloudkeeper-cron" ]; then
-    rm $INIT_DIR/cloudkeeper-cron
-  fi
-
-  # clean up links
+  # clean up bin links
   if [ -L "$BIN_DIR/cloudkeeper" ]; then
-    rm $BIN_DIR/cloudkeeper
+    rm "$BIN_DIR/cloudkeeper"
   fi
+
+  # clean up runtime directories
+  remdir "$DEST_DIR"
+  remdir "$CONFIG_DIR"
+  remdir "$LOG_DIR"
+  remdir "$SPOOL_DIR"
 fi
 
 echo "cloudkeeper has been uninstalled!"

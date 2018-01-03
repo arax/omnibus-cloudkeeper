@@ -6,27 +6,24 @@
 
 PROGNAME=$(basename $0)
 INSTALLER_DIR=`dirname $0`
-DEST_DIR=/opt/cloudkeeper
-CONFIG_DIR=/etc/cloudkeeper
-BIN_DIR=/usr/bin
-CRON_DIR=/etc/cron.d
-INIT_DIR=/etc/init.d
 
-RUN_DIR=/var/run/cloudkeeper
-LOG_DIR=/var/log/cloudkeeper
-SPOOL_DIR=/var/spool/cloudkeeper
-LOCK_DIR=/var/lock/cloudkeeper
+DEST_DIR="/opt/cloudkeeper"
+CONFIG_DIR="/etc/cloudkeeper"
+SPOOL_DIR="/var/spool/cloudkeeper"
+SYSD_DIR="/etc/systemd/system"
+BIN_DIR="/usr/bin"
 
-CLOUDKEEPER_CONFIG_FILE=$CONFIG_DIR/cloudkeeper.yml
-CLOUDKEEPER_CONFIG_FILE_MOD=440
-CLOUDKEEPER_IMAGES_DIR=$SPOOL_DIR/images/
+EMB_SYSD_DIR="${DEST_DIR}/examples/systemd"
 
-RUBY_VERSION=2.2.0
-CLOUDKEEPER_VERSION=1.6.0
-CLOUDKEEPER_NEW_CONFIG_VERSION=1.4
+CLOUDKEEPER_CONFIG_FILE="$CONFIG_DIR/cloudkeeper.yml"
+CLOUDKEEPER_CONFIG_FILE_MOD="440"
+CLOUDKEEPER_IMAGES_DIR="$SPOOL_DIR/images/"
 
-EMBEDDED_GEM_ROOT=$DEST_DIR/embedded/lib/ruby/gems/$RUBY_VERSION/gems/cloudkeeper-$CLOUDKEEPER_VERSION
-EMBEDDED_NGINX_BIN=$DEST_DIR/embedded/sbin/nginx
+RUBY_VERSION="2.4.0"
+CLOUDKEEPER_VERSION="1.6.0"
+
+EMBEDDED_GEM_ROOT="$DEST_DIR/embedded/lib/ruby/gems/$RUBY_VERSION/gems/cloudkeeper-$CLOUDKEEPER_VERSION"
+EMBEDDED_NGINX_BIN="$DEST_DIR/embedded/sbin/nginx"
 
 function error_exit
 {
@@ -35,80 +32,47 @@ function error_exit
 }
 
 # chown
-chown -R root:root $DEST_DIR || error_exit "Cannot chown $DEST_DIR to root:root"
+chown -R root:root "$DEST_DIR" || error_exit "Cannot chown $DEST_DIR to root:root"
 
 # create the cloudkeeper user
 id -u cloudkeeper > /dev/null 2>&1
 if [ "$?" -ne "0" ]; then
-  useradd --system --shell /bin/false --home $SPOOL_DIR --create-home cloudkeeper || error_exit "Cannot create the cloudkeeper user account"
+  useradd --system --shell /bin/false --home "$SPOOL_DIR" --create-home cloudkeeper || error_exit "Cannot create the cloudkeeper user account"
   usermod -L cloudkeeper || error_exit "Cannot lock the cloudkeeper user account"
 fi
 
 # prepare runtime dirs
-mkdir -p $RUN_DIR || error_exit "Cannot create $RUN_DIR"
-chown cloudkeeper:cloudkeeper $RUN_DIR || error_exit "Cannot chown $RUN_DIR to cloudkeeper:cloudkeeper"
-
-mkdir -p $LOG_DIR || error_exit "Cannot create $LOG_DIR"
-chown cloudkeeper:cloudkeeper $LOG_DIR || error_exit "Cannot chown $LOG_DIR to cloudkeeper:cloudkeeper"
-
-mkdir -p $CLOUDKEEPER_IMAGES_DIR || error_exit "Cannot create $CLOUDKEEPER_IMAGES_DIR"
-chown -R cloudkeeper:cloudkeeper $SPOOL_DIR || error_exit "Cannot chown $SPOOL_DIR to cloudkeeper:cloudkeeper"
-
-mkdir -p $LOCK_DIR || error_exit "Cannot create $LOCK_DIR"
-chown cloudkeeper:cloudkeeper $LOCK_DIR || error_exit "Cannot chown $LOCK_DIR to cloudkeeper:cloudkeeper"
+mkdir -p "$CLOUDKEEPER_IMAGES_DIR" || error_exit "Cannot create $CLOUDKEEPER_IMAGES_DIR"
+chown -R cloudkeeper:cloudkeeper "$SPOOL_DIR" || error_exit "Cannot chown $SPOOL_DIR to cloudkeeper:cloudkeeper"
 
 # prepare configuration dir
-mkdir -p $CONFIG_DIR || error_exit "Cannot create $CONFIG_DIR"
-chown root:root $CONFIG_DIR || error_exit "Cannot chown $CONFIG_DIR to root:root"
+mkdir -p "$CONFIG_DIR" || error_exit "Cannot create $CONFIG_DIR"
+chown root:root "$CONFIG_DIR" || error_exit "Cannot chown $CONFIG_DIR to root:root"
 
-CLOUDKEEPER_CONFIG_FILE_DEST=$CLOUDKEEPER_CONFIG_FILE
 if [ -f "$CLOUDKEEPER_CONFIG_FILE" ]; then
-  CLOUDKEEPER_CONFIG_FILE_DEST=$CLOUDKEEPER_CONFIG_FILE.new
+  CLOUDKEEPER_CONFIG_FILE="$CLOUDKEEPER_CONFIG_FILE.new"
 fi
 
-cp $EMBEDDED_GEM_ROOT/config/cloudkeeper.yml $CLOUDKEEPER_CONFIG_FILE_DEST || error_exit "Cannot create $CLOUDKEEPER_CONFIG_FILE_DEST"
-chown cloudkeeper:cloudkeeper $CLOUDKEEPER_CONFIG_FILE_DEST || error_exit "Cannot chown $CLOUDKEEPER_CONFIG_FILE_DEST to cloudkeeper:cloudkeeper"
-chmod $CLOUDKEEPER_CONFIG_FILE_MOD $CLOUDKEEPER_CONFIG_FILE_DEST || error_exit "Cannot chmod $CLOUDKEEPER_CONFIG_FILE_DEST to $CLOUDKEEPER_CONFIG_FILE_MOD"
-
-# copy new version of configuration file if moving through incompatible versions
-which rpm > /dev/null 2>&1
-if [ "$?" -eq "0" ]; then
-  RPM_VERSION=`rpm -q cloudkeeper | sort | head -n 1 | grep --color=never -oe"[0-9]\+\.[0-9]\+\.[0-9]\+"`
-fi
-
-if [ "x" != "x$2" -a "x$2" \< "x$CLOUDKEEPER_NEW_CONFIG_VERSION" ] || [ "$1" != "configure" -a "x$1" \> "x1" -a "x$RPM_VERSION" \< "x$CLOUDKEEPER_NEW_CONFIG_VERSION" ]; then
-  mv $CLOUDKEEPER_CONFIG_FILE $CLOUDKEEPER_CONFIG_FILE.old || error_exit "Cannot move $CLOUDKEEPER_CONFIG_FILE"
-  cp $EMBEDDED_GEM_ROOT/config/cloudkeeper.yml $CLOUDKEEPER_CONFIG_FILE || error_exit "Cannot create $CLOUDKEEPER_CONFIG_FILE"
-
-  chown cloudkeeper:cloudkeeper $CLOUDKEEPER_CONFIG_FILE || error_exit "Cannot chown $CLOUDKEEPER_CONFIG_FILE to cloudkeeper:cloudkeeper"
-  chmod $CLOUDKEEPER_CONFIG_FILE_MOD $CLOUDKEEPER_CONFIG_FILE || error_exit "Cannot chmod $CLOUDKEEPER_CONFIG_FILE to $CLOUDKEEPER_CONFIG_FILE_MOD"
-
-  CONFIG_FILE_MOVED="yes"
-  echo "New configuration file was released. Please modify it according to your needs."
-fi
+cp "$EMBEDDED_GEM_ROOT/config/cloudkeeper.yml" "$CLOUDKEEPER_CONFIG_FILE" || error_exit "Cannot create $CLOUDKEEPER_CONFIG_FILE"
+chown cloudkeeper:cloudkeeper "$CLOUDKEEPER_CONFIG_FILE" || error_exit "Cannot chown $CLOUDKEEPER_CONFIG_FILE to cloudkeeper:cloudkeeper"
+chmod "$CLOUDKEEPER_CONFIG_FILE_MOD" "$CLOUDKEEPER_CONFIG_FILE" || error_exit "Cannot chmod $CLOUDKEEPER_CONFIG_FILE to $CLOUDKEEPER_CONFIG_FILE_MOD"
 
 # symlink bin files into $BIN_DIR
-ln -sf $DEST_DIR/bin/cloudkeeper $BIN_DIR || error_exit "Cannot link cloudkeeper to $BIN_DIR"
+ln -sf "$DEST_DIR/bin/cloudkeeper" "$BIN_DIR" || error_exit "Cannot link cloudkeeper to $BIN_DIR"
 
-# set up cron integration
-if [ -d "$CRON_DIR" ]; then
-  cp $EMBEDDED_GEM_ROOT/examples/etc/cron.d/cloudkeeper $CRON_DIR || error_exit "Cannot register cloudkeeper in $CRON_DIR"
-fi
-
-# set up init scripts
-if [ -d "$INIT_DIR" ]; then
-  cp $EMBEDDED_GEM_ROOT/examples/etc/init.d/cloudkeeper-cron $INIT_DIR || error_exit "Cannot register cloudkeeper-cron in $INIT_DIR"
+# systemd
+if [ -d "$SYSD_DIR" ] && [ -d "$EMB_SYSD_DIR" ]; then
+  for SD_FILE in ${EMB_SYSD_DIR}/* ; do
+    if [ -f "$SD_FILE" ]; then
+      cp "$SD_FILE" "${SYSD_DIR}/" || error_exit "Could not copy $SD_FILE into $SYSD_DIR"
+    fi
+  done
 fi
 
 # change configuration defaults
 EMBEDDED_NGINX_BIN_ESCAPED=$(echo "$EMBEDDED_NGINX_BIN" | sed -e 's/[\/&]/\\&/g')
-sed -i "s/\/usr\/bin\/nginx/$EMBEDDED_NGINX_BIN_ESCAPED/g" $CLOUDKEEPER_CONFIG_FILE_DEST || error_exit "Could not adapt $CLOUDKEEPER_CONFIG_FILE_DEST to local configuration"
-sed -i "s/remote-mode: false/remote-mode: true/g" $CLOUDKEEPER_CONFIG_FILE_DEST || error_exit "Could not adapt $CLOUDKEEPER_CONFIG_FILE_DEST to local configuration"
-
-if [ "x$CONFIG_FILE_MOVED" = "xyes" ]; then
-  sed -i "s/\/usr\/bin\/nginx/$EMBEDDED_NGINX_BIN_ESCAPED/g" $CLOUDKEEPER_CONFIG_FILE || error_exit "Could not adapt $CLOUDKEEPER_CONFIG_FILE to local configuration"
-  sed -i "s/remote-mode: false/remote-mode: true/g" $CLOUDKEEPER_CONFIG_FILE || error_exit "Could not adapt $CLOUDKEEPER_CONFIG_FILE to local configuration"
-fi
+sed -i "s/\/usr\/bin\/nginx/$EMBEDDED_NGINX_BIN_ESCAPED/g" "$CLOUDKEEPER_CONFIG_FILE" || error_exit "Could not adapt $CLOUDKEEPER_CONFIG_FILE to local configuration"
+sed -i "s/remote-mode: false/remote-mode: true/g" "$CLOUDKEEPER_CONFIG_FILE" || error_exit "Could not adapt $CLOUDKEEPER_CONFIG_FILE to local configuration"
 
 echo "Thank you for installing cloudkeeper!"
 
