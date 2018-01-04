@@ -7,13 +7,10 @@ Type=oneshot
 
 User=cloudkeeper
 Group=cloudkeeper
+PermissionsStartOnly=true
 
-WorkingDirectory=/var/run/cloudkeeper
-RuntimeDirectory=/var/run/cloudkeeper
-StateDirectory=/var/lock/cloudkeeper
-CacheDirectory=/var/spool/cloudkeeper
-LogsDirectory=/var/log/cloudkeeper
-ConfigurationDirectory=/etc/cloudkeeper
+ExecStartPre=/bin/mkdir -p /var/run/cloudkeeper /var/lock/cloudkeeper /var/spool/cloudkeeper/images /var/log/cloudkeeper
+ExecStartPre=/bin/chown -R cloudkeeper:cloudkeeper /var/run/cloudkeeper /var/lock/cloudkeeper /var/spool/cloudkeeper /var/log/cloudkeeper
 
 ExecStart=/usr/bin/cloudkeeper
 

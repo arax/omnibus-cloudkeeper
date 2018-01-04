@@ -4,4 +4,23 @@
 # before package is installed.
 #
 
+CRON_DIR=/etc/cron.d
+INIT_DIR=/etc/init.d
+
+function error_exit
+{
+  echo "${PROGNAME}: ${1:-"Unknown Error"}" 1>&2
+  exit 1
+}
+
+# clean up cron integration
+if [ -f "$CRON_DIR/cloudkeeper" ]; then
+  rm $CRON_DIR/cloudkeeper
+fi
+
+# clean up init scripts
+if [ -f "$INIT_DIR/cloudkeeper-cron" ]; then
+  rm $INIT_DIR/cloudkeeper-cron
+fi
+
 echo "You're about to install cloudkeeper!"
